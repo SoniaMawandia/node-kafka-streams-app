@@ -3,16 +3,16 @@
  */
 
 import { createClient, RedisClient } from 'redis';
-//import { configuration } from '../libs/appconfig';
+import { configuration } from '../libs/appconfig';
 import { Logger } from '../libs/logger';
 import { EnSeverity } from '../libs/enums';
 import {AppError} from '../libs/apperror';
 
 // Use this redisClient if Redis is hosted elsewhere, like in Azure Redis Cache.
-// var redisClient = createClient(configuration.redisclient.port, configuration.redisclient.host,
-//     {auth_pass: configuration.redisclient.auth_pass, tls: {servername: configuration.redisclient.host}});
+var redisClient = createClient({port:configuration.redisclient.port,host: configuration.redisclient.host});
+//{auth_pass: configuration.redisclient.auth_pass, tls: {servername: configuration.redisclient.host}});
 
-var redisClient = createClient();
+//var redisClient = createClient();
 
 var log: Logger = new Logger('RedisConn');
 

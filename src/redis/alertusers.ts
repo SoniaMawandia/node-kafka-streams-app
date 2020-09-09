@@ -24,6 +24,8 @@ export class AlertUsers {
     //let deviceId = "2001";
 
     client.hgetall(key, function (err, result) {
+      // console.log("from redis");
+      // console.log(key)
       if (err) {
         console.log(`getting exception: ${err.message} for buildingId: ${alert.buildingId} and builderId: ${alert.builderId}`);
       } else {
@@ -31,9 +33,16 @@ export class AlertUsers {
         if (result != null) {
           //console.log('result: ', result);
           var devicesJson = result.Device;
-          var devices: DeviceUser[] = JSON.parse(devicesJson);
+          
+          //Fixed by Sonia 8/12/20202
+          //error: Unexpected token u in JSON at position 0: getting route exception- Unexpected token u in JSON at position 0
+          //Added validation
+          var devices: DeviceUser[] = []
+          if(devicesJson !== undefined)
+          devices = JSON.parse(devicesJson);
           //console.log('devices: ', devices);
           var usersJson = result.User;
+          //console.log('-------logging 3')
           var users: User[] = JSON.parse(usersJson);
           //console.log('users: ', users);
 
@@ -50,12 +59,17 @@ export class AlertUsers {
           });
           //console.log('-----------finalUsers-----------');
           //console.log(finalUsers);
-
+          if(finalUsers.length == 0)
+          {
+            _that.log.loginfo("No Users mapped for builderId: " + alert.builderId.toString().toUpperCase() + ", buildingId: " + alert.buildingId.toString().toUpperCase() + " and deviceId: " + alert.deviceId.toString().toUpperCase(), "getAlertUsers", EnSeverity.low);
+            //console.log("No Users mapped for builderId: " + alert.builderId.toString().toUpperCase() + ", buildingId: " + alert.buildingId.toString().toUpperCase() + " and deviceId: " + alert.deviceId.toString().toUpperCase());
+            callback(Constant.NoUserFound);
+          }
           callback(finalUsers);
         }
         else {
           _that.log.loginfo("No Users mapped for builderId: " + alert.builderId.toString().toUpperCase() + ", buildingId: " + alert.buildingId.toString().toUpperCase() + " and deviceId: " + alert.deviceId.toString().toUpperCase(), "getAlertUsers", EnSeverity.low);
-          console.log("No Users mapped for builderId: " + alert.builderId.toString().toUpperCase() + ", buildingId: " + alert.buildingId.toString().toUpperCase() + " and deviceId: " + alert.deviceId.toString().toUpperCase());
+          //console.log("No Users mapped for builderId: " + alert.builderId.toString().toUpperCase() + ", buildingId: " + alert.buildingId.toString().toUpperCase() + " and deviceId: " + alert.deviceId.toString().toUpperCase());
           callback(Constant.NoUserFound);
         }
       }

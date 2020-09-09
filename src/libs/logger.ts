@@ -22,6 +22,15 @@ const errlogger: winston.Logger = winston.createLogger({
     ],
     level: 'error'
 });
+const msglogger: winston.Logger = winston.createLogger({
+    transports: [
+        new winston.transports.File({
+            filename: path.join(__dirname, '..', lpath,
+                `gads_${new Date().getDate()}_${new Date().getMonth()}_${new Date().getFullYear()}_msg.log`)
+        })
+    ],
+    level: 'info'
+});
 
 const infologger: winston.Logger = winston.createLogger({
     transports: [
@@ -55,6 +64,41 @@ export class Logger implements Logs {
                     StackTrace: '',
                     LogDateTime: new Date().toString(),
                     IPAddress: '',
+                    LogLevel: 'debug'
+                };
+
+                Requests({
+                    url: logurl,
+                    method: "POST",
+                    json: true,
+                    body: log
+                }, function (err, _response, _body) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+            } else {
+                if (!severiety) { severiety = EnSeverity.low; }
+                let messagestr: string = new Date().toString()+ " - applicationame--> " + appName + ', severiety--> ' + severiety + ', classname--> ' + this.classname + ', methodname--> '
+                    + methodname + ', message--> ' + msg;
+                infologger.debug(messagestr);
+            }
+        }
+    }
+
+    logmsg(msg: string, methodname: string, severiety: EnSeverity): void {
+
+        if (this.logson == 0) {
+            if (logging.toLowerCase().includes("kibana")) {
+                let log: GADSLogs = {
+                    Application: appName,
+                    APIName: this.classname,
+                    ClassName: this.classname,
+                    MethodName: methodname,
+                    Message: msg,
+                    StackTrace: '',
+                    LogDateTime: new Date().toString(),
+                    IPAddress: '',
                     LogLevel: 'info'
                 };
 
@@ -70,13 +114,11 @@ export class Logger implements Logs {
                 });
             } else {
                 if (!severiety) { severiety = EnSeverity.low; }
-                let messagestr: string = "anpplicationame--> " + appName + ', severiety--> ' + severiety + ', classname--> ' + this.classname + ', methodname--> '
-                    + methodname + ', message--> ' + msg;
-                infologger.info(messagestr);
+                let messagestr: string = new Date().toString()+ ', message--> ' + msg;
+                msglogger.info(messagestr);
             }
         }
     }
-
     logerror(msg: string, stackStrace: any, methodname: string, severiety: EnSeverity): void {
         if (this.logson == 0) {
             if (logging.toLowerCase().includes("kibana")) {
@@ -105,7 +147,7 @@ export class Logger implements Logs {
                 });
             } else
                 if (!severiety) { severiety = EnSeverity.high; }
-            let messagestr: string = "anpplicationame--> " + appName + ', severiety--> ' + severiety + ', classname--> ' + this.classname + ', methodname--> '
+            let messagestr: string =  new Date().toString()+ "applicationame--> " + appName + ', severiety--> ' + severiety + ', classname--> ' + this.classname + ', methodname--> '
                 + methodname + ', message--> ' + msg + ', stackStrace--> ' + stackStrace;
             errlogger.error(messagestr);
         }

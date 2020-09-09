@@ -15,7 +15,7 @@ export class EntityValidation {
         post.severity = data.severity;
         post.value = data.value;
         post.name = data.name;
-        
+        post.alertId=data.alertId
         const errors = await validate(post);
         if (errors.length > 0) {
             for (let i = 0; i < errors.length; i++) {

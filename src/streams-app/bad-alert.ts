@@ -1,3 +1,5 @@
+
+import * as moment from 'moment';
 import { getBadAlertStreamsApp } from '../streams/streams-conn';
 import { configuration } from '../libs/appconfig';
 import { BadAlertProcessingModel } from '../models/badalertmodel';
@@ -11,17 +13,19 @@ export class BadAlertStreamsApp {
     badEventFieldMapperEtl(kafkaMessage: any) {
         let badEventMessage = kafkaMessage.value ? kafkaMessage.value.toString("utf8") : null;
         let badEventEntity = new BadAlertProcessingModel();
+      
+        //console.log('-------logging 1')
         let badEventJsonObj =  JSON.parse(badEventMessage);
         
         if (badEventJsonObj != null){
             badEventEntity.alertJson = JSON.stringify(badEventJsonObj.alertJson);
             badEventEntity.reason = badEventJsonObj.errorMessage.toString();
             let strProducerTimestamp = badEventJsonObj.producerTimestamp.toString();
-            let numProducerTimestamp = +strProducerTimestamp; 
-            let producerTimestamp = new Date(numProducerTimestamp).toISOString();
+            let numProducerTimestamp = strProducerTimestamp; 
+            //let producerTimestamp = moment.utc(moment(numProducerTimestamp)).format()//new Date(numProducerTimestamp).toISOString();
             badEventEntity.organizationName = badEventJsonObj.organizationName.toString();
             badEventEntity.clientId = badEventJsonObj.clientId.toString();
-            badEventEntity.badAlertTime = producerTimestamp;
+            badEventEntity.badAlertTime = numProducerTimestamp;
         }
         return badEventEntity;
     };
@@ -42,7 +46,8 @@ export class BadAlertStreamsApp {
         badEventStream
             .map(this.badEventFieldMapperEtl)
             .map(this.processBadEvent)
-            .tap(message => console.log(message))
+            //.tap(message => console.log(message))
+            .tap(message => {})
             .to("bad-alert-streams-output");
 
         //start the stream

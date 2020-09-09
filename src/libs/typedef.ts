@@ -21,6 +21,11 @@ export interface IConfiguration {  // FE
             requireAcks: number,
             ackTimeoutMs: number,
             partitionerType: number
+        },
+        enrichedAlert: {
+            requireAcks: number,
+            ackTimeoutMs: number,
+            partitionerType: number
         }
     };
     topic: {
@@ -64,6 +69,18 @@ export interface IConfiguration {  // FE
         host: string,
         auth_pass: string      
     };
+    cassandraclient: {
+        port: number,
+        host: string,
+        localdatacenter:string,
+        keyspace: string      
+    },
+    gmailSite: {
+        clientid: string,
+        clientsecret:string,
+        refreshtoken:string,
+        user:string   
+    },
     applicationname:string;
     log: {
         path: string;

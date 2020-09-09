@@ -17,3 +17,10 @@ export class BadAlertProcessingModel {
     public alertJson: string = strEmpty;
     public reason: string = strEmpty;
 }
+
+
+export class InvalidAlertModel{ 
+    public alert: AlertInputModel=new AlertInputModel();
+    public reason: string= strEmpty;;
+
+}

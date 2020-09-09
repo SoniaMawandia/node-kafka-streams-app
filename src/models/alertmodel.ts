@@ -4,7 +4,6 @@ import { IsString, IsNotEmpty, Validate, ValidateNested } from "class-validator"
 import { ValidateGuid } from "../validations/validateGuid";
 
 export class AlertModel{
-
     public builderId: Guid = Guid.createEmpty();    
     public buildingId: Guid = Guid.createEmpty();
     public deviceId: Guid = Guid.createEmpty();
@@ -13,6 +12,7 @@ export class AlertModel{
     public value: string = strEmpty;
     public name: string = strEmpty;
     public producerTimestamp: string = strEmpty;
+    public alertId:Guid = Guid.create();
 }
 
 export class AlertInputModel{
@@ -40,6 +40,8 @@ export class AlertInputModel{
 
     @IsString()
     public name: string = strEmpty;
+
+    public alertId: Guid = Guid.createEmpty();
 }
 
 export class Path {
@@ -78,3 +80,4 @@ export class EnrichedAlertModel {
     alert: AlertModel = new AlertModel();
     users: User[] = [];
 }
+

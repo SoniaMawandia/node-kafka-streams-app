@@ -7,7 +7,9 @@ import { EnSeverity } from '../libs/enums';
 import { AlertUsers } from '../redis/alertusers';
 import { Alerts } from '../produce/alertProducer';
 import { Constant } from '../libs/constants';
-
+import {savetodb} from '../cassandra/savetodb';
+import * as email from '../notification/email'
+import { Guid } from 'guid-typescript';
 export class EnrichAlert {
 
     constructor() { }
@@ -15,10 +17,13 @@ export class EnrichAlert {
     alertFieldMapperEtl(kafkaMessage: any) {
         let log: Logger = new Logger('EnrichAlert');
         let alertMessage = kafkaMessage.value ? kafkaMessage.value.toString("utf8") : null;
+       
         let alertJsonObj = JSON.parse(alertMessage);
         let alertEntity = new AlertModel();
-
+        //alertEntity.alertId=Guid.create();
+     
         if (alertJsonObj != null) {
+            alertEntity.alertId=alertJsonObj.alertId;
             alertEntity.builderId = alertJsonObj.builderId;
             alertEntity.buildingId = alertJsonObj.buildingId;
             alertEntity.deviceId = alertJsonObj.deviceId;
@@ -26,13 +31,19 @@ export class EnrichAlert {
             alertEntity.severity = alertJsonObj.severity;
             alertEntity.value = alertJsonObj.value;
             alertEntity.name = alertJsonObj.name;
+//            alertEntity.alertId=alertJsonObj.
         }
         log.loginfo("Started processing new event.." + alertMessage, "eventFieldMapperEtl", EnSeverity.medium);
-        console.log(alertEntity);
+        //console.log(alertEntity);
+        //Save to cassandra DB
+        //new savetodb().saveAlerts(alertEntity);
+        //console.log("data saved successfully;")
         return alertEntity;
     };
 
-    processAlert(alertEntity: AlertModel) {
+    async processAlert(alertEntity: AlertModel) {
+       
+        //console.log(alertEntity)
         let log: Logger = new Logger('EnrichAlert');
         let producer: Alerts = new Alerts();
         let alertUsers: AlertUsers = new AlertUsers();
@@ -49,12 +60,19 @@ export class EnrichAlert {
                 if (filteredUsers == Constant.NoUserFound) {
                     // Produce to bad alert topic
                     produceBadAlert(alertEntity, filteredUsers);
+                    await new savetodb().saveBadAlerts(alertEntity, filteredUsers);
                 }
                 else {
                     let alertUsersArray: User[] = filteredUsers;
                     enricherdAlert.users = alertUsersArray;
                     log.loginfo("Enriched Alert is: " + enricherdAlert, "processAlert", EnSeverity.medium);
+                    //console.log("Enriched Good Alert");
+                    
 
+                   new email.MailAPI().prepareAndSendEmail(enricherdAlert);
+                    
+                    //Save to cassandra DB
+                    await new savetodb().saveEnrichedAlerts(enricherdAlert);
                     produceEnrichedAlert(enricherdAlert);
                 }
             }
@@ -70,6 +88,7 @@ export class EnrichAlert {
             let badAlertModel = new BadAlertModel();
             let badAlertModelArr: BadAlertModel[] = [];
             let aim: AlertInputModel = new AlertInputModel();
+            aim.alertId=alertEntity.alertId;
             aim.builderId = alertEntity.builderId;
             aim.path.buildingId = alertEntity.buildingId;
             aim.path.deviceId = alertEntity.deviceId;
@@ -81,16 +100,18 @@ export class EnrichAlert {
             badAlertModel.reason = reason;
             badAlertModel.producerTimestamp = Date.now().toString();
             badAlertModelArr.push(badAlertModel);
+            log.logmsg("Produced Bad alert as users are not mapped for alert: " + JSON.stringify(aim), "Produced Bad Alert",EnSeverity.low);
             producer.produceBadAlert(badAlertModelArr, (done: any) => {
-                console.log("Produced Bad alert as users are not mapped for alert: " + JSON.stringify(done));
+                //console.log("Produced Bad alert as users are not mapped for alert: " + JSON.stringify(done));
+
                 log.loginfo("Produced Bad alert as users are not mapped for alert: " + JSON.stringify(aim), "Produced Bad Alert", EnSeverity.high);
             });
         }
 
         function produceEnrichedAlert(enrichedAlertEntity: EnrichedAlertModel) {            
             producer.produceEnrichedAlert(enrichedAlertEntity, (done: any) => {
-                console.log("Produced Enriched alert: " + JSON.stringify(done));
-                log.loginfo("Produced Enriched alert: " + JSON.stringify(enricherdAlert), "Produced Enriched Alert", EnSeverity.high);
+                //console.log("Produced Enriched alert: " + JSON.stringify(done));
+                //log.loginfo("Produced Enriched alert: " + JSON.stringify(enricherdAlert), "Produced Enriched Alert", EnSeverity.high);
             });
         }
 
@@ -112,7 +133,7 @@ export class EnrichAlert {
 
         let eventStream = kafkaStreams.getKStream(topicName);
         console.log('topic: ', topicName);
-
+        console.log("2");
 
         //Promise.all([
         eventStream
@@ -121,7 +142,7 @@ export class EnrichAlert {
             //.filter(alert => alert.value >= 150)
             .map(this.processAlert)
             .map(x => JSON.stringify(x))
-            .tap(message => console.log(message))
+           // .tap(message => console.log(message))
             .to("alert-streams-output")
 
 

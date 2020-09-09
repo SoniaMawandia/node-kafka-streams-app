@@ -16,7 +16,8 @@ const log:Logger = new Logger('ApplicationError');
 
 process.on("uncaughtException", e => {
   let error = new AppError(`getting route exception- ${e.message}`,e.stack, log, "uncaughtException");
-  express.response.status(500).send({ error: error });
+  console.log(error)
+  //express.response.status(500).send({ error: error });
 });
 
 process.on("unhandledRejection", e => {
@@ -36,9 +37,10 @@ function setMiddleware(): void {
   app.use( bodyParser.json() );       // to support JSON-encoded bodies
   
   new Route(app).route();
+  
   new EnrichAlert().setAlertStreamApp();
   new BadAlertStreamsApp().setBadAlertStreamApp();
- 
+  //new EnrichAlert().setBadAlertStreamApp();
 
   app.use((e: Error/* , req: express.Request, res: express.Response, next: express.NextFunction */) => {
     let error = new AppError(`getting route exception- ${e.message}`,e.stack, log, "routeException");
