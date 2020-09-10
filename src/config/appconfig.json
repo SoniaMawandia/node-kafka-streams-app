@@ -2,7 +2,7 @@
     "httpport": 5000,
     "httpsport": 5001,    
     "kafkaClient": {
-        "kafkaHost": "localhost:9092",
+        "kafkaHost": "kafka-service:9092",
         "connectTimeout": 10000,
         "maxAsyncRequests": 10,
         "requestTimeout": 30000        
@@ -42,7 +42,7 @@
 
     },
     "streams": {
-        "kafkaHost": "localhost:9092",
+        "kafkaHost": "kafka-service:9092",
         "groupId": "DEMO",
         "clientName": "DEMO-Kafka-Streams",
         "workerPerPartition": 1,
