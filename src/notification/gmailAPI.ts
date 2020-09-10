@@ -5,7 +5,7 @@ import { Logger } from '../libs/logger';
 import { EnSeverity } from '../libs/enums';
 const OAuth2 = google.auth.OAuth2;
 
-import * as sleep from "sleep";
+// import * as sleep from "sleep";
 
 export class MailAPI {
     g_client_secret:string;
