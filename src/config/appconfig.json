@@ -64,12 +64,12 @@
     },
     "redisclient": {
         "port": 6379,
-        "host": "127.0.0.1",
+        "host": "redis-master",
         "auth_pass": ""      
     },
     "cassandraclient": {
         "port": 9042,
-        "host": "127.0.0.1",
+        "host": "cassandra",
         "localdatacenter":"datacenter1",
         "keyspace": "alarmdeliverysystem"      
     },
